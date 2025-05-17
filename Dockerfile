@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-# Install dependencies
+# Install dependencies + intl
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y \
     zip \
     libonig-dev \
     libxml2-dev \
-    && docker-php-ext-install pdo pdo_pgsql zip
+    libicu-dev \
+    && docker-php-ext-install intl pdo pdo_pgsql zip
+
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
