@@ -26,42 +26,30 @@
 
 FROM php:8.3-fpm
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git curl unzip libzip-dev libpq-dev libicu-dev libxml2-dev libonig-dev \
     && docker-php-ext-install intl pdo pdo_pgsql zip
 
-# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install Caddy (production web server)
 RUN curl -fsSL https://getcaddy.com | bash -s personal
 
-# Set working directory
 WORKDIR /app
-
-# Copy Laravel project
 COPY . .
 
-# Install Laravel dependencies
 RUN composer install --optimize-autoloader --no-dev
 
-# Generate key only if not present via Railway env
-RUN if [ ! "$APP_KEY" ]; then echo "⚠️ APP_KEY not set!"; exit 1; fi
+RUN php artisan config:clear \
+ && php artisan config:cache \
+ && php artisan route:cache \
+ && php artisan view:cache \
+ && php artisan migrate --force \
+ && php artisan storage:link || true
 
-# Laravel setup
-RUN php artisan config:clear && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
-    php artisan migrate --force && \
-    php artisan storage:link || true
-
-# Expose port for Railway
 EXPOSE 8080
 
-# Start Laravel using Caddy (inline Caddyfile)
 CMD ["sh", "-c", "\
+if [ -z \"$APP_KEY\" ]; then echo '❌ APP_KEY not set!'; exit 1; fi; \
 echo 'http://0.0.0.0:8080 { \
     root * /app/public \
     encode gzip \
