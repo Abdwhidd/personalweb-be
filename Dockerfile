@@ -13,11 +13,11 @@ WORKDIR /app
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan migrate --force || true
-RUN php artisan storage:link || true
+
+# Copy and make entrypoint executable
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
 
-CMD php -S 0.0.0.0:${PORT:-8080} -t public
+CMD ["/entrypoint.sh"]
