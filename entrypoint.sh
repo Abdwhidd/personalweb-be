@@ -1,15 +1,14 @@
 #!/bin/sh
 
-# Pastikan APP_KEY ada dari ENV Railway
+echo "👉 Starting Laravel setup..."
+
 if [ -z "$APP_KEY" ]; then
-  echo "❌ APP_KEY is missing from environment!"
+  echo "❌ APP_KEY is missing! Exiting."
   exit 1
 fi
 
-echo "APP_KEY: $APP_KEY"
-
-# Laravel setup
 composer install --optimize-autoloader
+
 php artisan config:clear
 php artisan config:cache
 php artisan route:cache
@@ -17,6 +16,10 @@ php artisan view:cache
 php artisan migrate --force
 php artisan storage:link || true
 
-# Start server
-echo "✅ Starting server on port ${PORT:-8080}"
+echo "✅ Laravel setup done."
+
+echo "🧪 Checking index.php..."
+ls -lah public/index.php
+
+echo "🚀 Starting PHP server on port ${PORT:-8080}..."
 php -S 0.0.0.0:${PORT:-8080} -t public
