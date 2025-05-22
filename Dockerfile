@@ -55,6 +55,7 @@ php artisan config:cache && \
 php artisan route:cache && \
 php artisan view:cache && \
 php artisan migrate --force && \
+php artisan filament:install && \
 php artisan vendor:publish --tag=filament-assets --force && \
 php artisan storage:link || true && \
 printf \"%s\\n\" \
