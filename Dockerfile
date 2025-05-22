@@ -45,6 +45,7 @@ COPY . .
 
 # Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
+RUN ls -lah /app/public/index.php
 
 EXPOSE 8080
 
