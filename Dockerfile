@@ -49,7 +49,7 @@ RUN composer install --no-dev --optimize-autoloader
 EXPOSE 8080
 
 CMD ["sh", "-c", "\
-if [ -z \"$APP_KEY\" ]; then echo '❌ APP_KEY is missing!'; exit 1; fi; \
+php artisan key:generate && \
 php artisan config:clear && \
 php artisan config:cache && \
 php artisan route:cache && \
@@ -58,15 +58,8 @@ php artisan migrate --force && \
 php artisan filament:install && \
 php artisan vendor:publish --tag=filament-assets --force && \
 php artisan storage:link || true && \
-printf \"%s\\n\" \
-  \"http://0.0.0.0:8080 {\" \
-  \"    root * /app/public\" \
-  \"    encode gzip\" \
-  \"    php_fastcgi 127.0.0.1:9000\" \
-  \"    file_server\" \
-  \"}\" > /etc/Caddyfile && \
-php-fpm -D && \
-caddy run --config /etc/Caddyfile --adapter caddyfile"]
+php -S 0.0.0.0:8080 -t public"]
+
 
 
 
