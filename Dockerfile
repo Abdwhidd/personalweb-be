@@ -38,7 +38,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN curl -L https://github.com/caddyserver/caddy/releases/download/v2.7.6/caddy_2.7.6_linux_amd64.tar.gz \
   | tar -xz -C /usr/bin caddy && chmod +x /usr/bin/caddy
 
-# ✅ Override PHP-FPM config to listen on TCP (NOT default socket)
+# Force PHP-FPM to listen on TCP for Caddy
 RUN sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf
 
 WORKDIR /app
@@ -67,7 +67,6 @@ printf \"%s\\n\" \
   \"}\" > /etc/Caddyfile && \
 php-fpm -D && \
 caddy run --config /etc/Caddyfile --adapter caddyfile"]
-
 
 
 
