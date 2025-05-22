@@ -26,7 +26,7 @@
 
 FROM php:8.3-fpm
 
-# Install PHP & system dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git curl unzip libzip-dev libpq-dev libicu-dev libxml2-dev libonig-dev \
     && docker-php-ext-install intl pdo pdo_pgsql zip
@@ -34,22 +34,28 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install Caddy binary
+# Install Caddy (standalone binary)
 RUN curl -L https://github.com/caddyserver/caddy/releases/download/v2.7.6/caddy_2.7.6_linux_amd64.tar.gz \
   | tar -xz -C /usr/bin caddy && chmod +x /usr/bin/caddy
-
-# Force PHP-FPM to listen on TCP for Caddy
-RUN sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf
 
 WORKDIR /app
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
+# ✅ Caddyfile using UNIX socket (no port conflict)
+RUN printf "%s\n" \
+  "http://0.0.0.0:8080 {" \
+  "  root * /app/public" \
+  "  encode gzip" \
+  "  php_fastcgi unix//run/php/php-fpm.sock" \
+  "  file_server" \
+  "}" > /etc/Caddyfile
+
 EXPOSE 8080
 
 CMD ["sh", "-c", "\
-php artisan key:generate && \
+mkdir -p /run/php && \
 php artisan config:clear && \
 php artisan config:cache && \
 php artisan route:cache && \
@@ -58,7 +64,9 @@ php artisan migrate --force && \
 php artisan filament:install && \
 php artisan vendor:publish --tag=filament-assets --force && \
 php artisan storage:link || true && \
-php -S 0.0.0.0:8080 -t public"]
+php-fpm -y /usr/local/etc/php-fpm.conf -D && \
+caddy run --config /etc/Caddyfile --adapter caddyfile"]
+
 
 
 
