@@ -26,7 +26,7 @@
 
 FROM php:8.3-fpm
 
-# Install system dependencies
+# Install PHP & system dependencies
 RUN apt-get update && apt-get install -y \
     git curl unzip libzip-dev libpq-dev libicu-dev libxml2-dev libonig-dev \
     && docker-php-ext-install intl pdo pdo_pgsql zip
@@ -34,17 +34,17 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# ✅ Download Caddy binary langsung
+# Install Caddy binary
 RUN curl -L https://github.com/caddyserver/caddy/releases/download/v2.7.6/caddy_2.7.6_linux_amd64.tar.gz \
   | tar -xz -C /usr/bin caddy && chmod +x /usr/bin/caddy
+
+# ✅ Override PHP-FPM config to listen on TCP (NOT default socket)
+RUN sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf
 
 WORKDIR /app
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
-
-# ✅ Tambahkan check: apakah view `welcome` ada
-RUN ls -lah /app/resources/views/welcome.blade.php || echo '⚠️ WARNING: welcome.blade.php missing!'
 
 EXPOSE 8080
 
@@ -65,8 +65,9 @@ printf \"%s\\n\" \
   \"    php_fastcgi 127.0.0.1:9000\" \
   \"    file_server\" \
   \"}\" > /etc/Caddyfile && \
-php-fpm & \
+php-fpm -D && \
 caddy run --config /etc/Caddyfile --adapter caddyfile"]
+
 
 
 
