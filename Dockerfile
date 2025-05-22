@@ -65,7 +65,9 @@ php artisan filament:install && \
 php artisan vendor:publish --tag=filament-assets --force && \
 php artisan storage:link || true && \
 php-fpm -y /usr/local/etc/php-fpm.conf -D && \
-caddy run --config /etc/Caddyfile --adapter caddyfile"]
+caddy run --config /etc/Caddyfile --adapter caddyfile"] \
+tail -n 50 storage/logs/laravel.log || echo 'No Laravel error log'
+
 
 
 
