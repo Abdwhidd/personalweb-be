@@ -49,15 +49,26 @@ RUN composer install --no-dev --optimize-autoloader
 EXPOSE 8080
 
 CMD ["sh", "-c", "\
+# 1. Cek APP_KEY
 if [ -z \"$APP_KEY\" ]; then echo '❌ APP_KEY is missing!'; exit 1; fi; \
+
+# 2. Laravel setup
 php artisan config:clear && \
 php artisan config:cache && \
 php artisan route:cache && \
 php artisan view:cache && \
 php artisan migrate --force && \
+
+# 3. Filament install (publish assets, create folders, dsb.)
 php artisan filament:install && \
+
+# 4. Paksa publish asset Filament (sudah tersedia setelah install)
 php artisan vendor:publish --tag=filament-assets --force && \
+
+# 5. Link storage
 php artisan storage:link || true && \
+
+# 6. Tulis Caddyfile secara inline
 printf \"%s\\n\" \
   \"http://0.0.0.0:8080 {\" \
   \"    root * /app/public\" \
@@ -65,4 +76,6 @@ printf \"%s\\n\" \
   \"    php_fastcgi 127.0.0.1:9000\" \
   \"    file_server\" \
   \"}\" > /etc/Caddyfile && \
+
+# 7. Jalankan Caddy
 caddy run --config /etc/Caddyfile --adapter caddyfile"]
