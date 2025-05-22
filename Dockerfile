@@ -65,8 +65,9 @@ printf \"%s\\n\" \
   \"    php_fastcgi 127.0.0.1:9000\" \
   \"    file_server\" \
   \"}\" > /etc/Caddyfile && \
-php-fpm -D && \
+php-fpm & \
 caddy run --config /etc/Caddyfile --adapter caddyfile"]
+
 
 
 
