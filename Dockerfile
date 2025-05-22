@@ -57,10 +57,11 @@ php artisan view:cache && \
 php artisan migrate --force && \
 php artisan vendor:publish --tag=filament-assets --force && \
 php artisan storage:link || true && \
-echo 'http://0.0.0.0:8080 { \
-  root * /app/public \
-  encode gzip \
-  php_fastcgi 127.0.0.1:9000 \
-  file_server \
-}' > /etc/Caddyfile && \
+printf \"%s\\n\" \
+  \"http://0.0.0.0:8080 {\" \
+  \"    root * /app/public\" \
+  \"    encode gzip\" \
+  \"    php_fastcgi 127.0.0.1:9000\" \
+  \"    file_server\" \
+  \"}\" > /etc/Caddyfile && \
 caddy run --config /etc/Caddyfile --adapter caddyfile"]
